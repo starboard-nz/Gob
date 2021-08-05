@@ -20,7 +20,7 @@ type Encoder struct {
 	sent       map[reflect.Type]typeId // which types we've already sent
 	countState *encoderState           // stage for writing counts
 	freeList   *encoderState           // list of free encoderStates; avoids reallocation
-	byteBuf    encBuffer               // buffer for top-level encoderState
+	byteBuf    *encBuffer               // buffer for top-level encoderState
 	err        error
 }
 
@@ -237,9 +237,9 @@ func (enc *Encoder) EncodeValue(value reflect.Value) error {
 	}
 
 	enc.err = nil
-	enc.byteBuf.Reset()
+	enc.byteBuf = encBufferPool.Get().(*encBuffer)
 	enc.byteBuf.Write(spaceForLength)
-	state := enc.newEncoderState(&enc.byteBuf)
+	state := enc.newEncoderState(enc.byteBuf)
 
 	enc.sendTypeDescriptor(enc.writer(), state, ut)
 	enc.sendTypeId(state, ut)
@@ -254,5 +254,10 @@ func (enc *Encoder) EncodeValue(value reflect.Value) error {
 	}
 
 	enc.freeEncoderState(state)
+
+	enc.byteBuf.Reset()
+	encBufferPool.Put(enc.byteBuf)
+	enc.byteBuf = nil
+
 	return enc.err
 }
