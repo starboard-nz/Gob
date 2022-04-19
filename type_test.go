@@ -172,7 +172,7 @@ func TestRegistrationNaming(t *testing.T) {
 		name string
 	}{
 		{&N1{}, "*gob.N1"},
-		{N2{}, "gitlab.com/xerra/common/gob.N2"},
+		{N2{}, "github.com/starboard-nz/gob.N2"},
 	}
 
 	for _, tc := range testCases {
